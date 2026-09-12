@@ -1,0 +1,74 @@
+:root { color-scheme: light; }
+.theme-toggle {
+  flex-shrink: 0;
+  border: 1px solid var(--line);
+  border-radius: 30px;
+  padding: 0;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  background: var(--white);
+  color: var(--ink);
+  box-shadow: 0 5px 22px #17112b18;
+  font-size: 12px;
+  font-weight: 600;
+}
+.theme-to-dark { display: flex; align-items: center; gap: 8px; }
+.theme-to-light { display: none; }
+html[data-theme="dark"] { 
+  color-scheme: dark;
+  --bg: #101119;
+  --ink: #eeeef6;
+  --muted: #a4a8ba;
+  --line: #30313f;
+  --purple: #b39aff;
+  --light: #302545;
+  --white: #1b1d29;
+}
+[data-theme="dark"] .theme-to-dark { display: none; }
+[data-theme="dark"] .theme-to-light { display: flex; align-items: center; gap: 8px; }
+[data-theme="dark"] :is(.welcome, .route-loader) { background: radial-gradient(ellipse at 75% 30%, #2d2149 0, transparent 55%), #11121b; }
+[data-theme="dark"] :is(.sidebar, .topbar, .panel, .stat, .drawer, dialog, .logout-confirm-card, .secondary, .filters select, form input, form textarea, form select, .search input) { background: var(--white); color: var(--ink); border-color: var(--line); }
+[data-theme="dark"] :is(.sidebar nav button:hover, .sidebar nav button.active, .sidebar-tip, .demo-banner, .stat:last-child, .detail-item, .date-tile, .career-summary, .logout-confirm-icon) { background: #2a233c; border-color: #3a2e50; color: #c9b9f2; }
+[data-theme="dark"] :is(.brand, .brand span, .sidebar nav button, .page-heading p, .welcome-body > p, .welcome-bottom, .workspace-footer, .workspace-footer span, .panel-title p, .panel-footer, .time, .stat small, .stat > div, .interview-card small, .company-cell small, .drawer > h2, small, .muted) { color: var(--muted); }
+[data-theme="dark"] .brand { color: var(--ink); }
+[data-theme="dark"] :is(.primary, .primary:hover) { background: #7954d8; color: white; }
+[data-theme="dark"] :is(th, .analytics-bars > div > div) { background: #161822; color: var(--muted); }
+[data-theme="dark"] :is(td, th, .interview-card + .interview-card, .career-job, .career-summary > div + div) { border-color: var(--line); }
+[data-theme="dark"] :is(.career-board, .career-float) { background: #1e1e2df5; border-color: #3a324b; box-shadow: 0 25px 60px -25px #0009; }
+[data-theme="dark"] :is(.career-orbit, .career-summary) { border-color: #4b3c67; }
+[data-theme="dark"] :is(.career-avatar, .career-company, .career-stage, .career-icon, .technical, .logo-0) { background: #382952; color: #c9aaff; }
+[data-theme="dark"] :is(.company-mint, .stage-mint, .mint-icon, .offer) { background: #1c3930; color: #94d5b4; }
+[data-theme="dark"] :is(.applied, .withdrawn, .logo-2) { background: #303341; color: #c0c6d6; }
+[data-theme="dark"] :is(.oa, .logo-1) { background: #403321; color: #e1bf83; }
+[data-theme="dark"] :is(.hr, .logo-3) { background: #25334b; color: #a1c2ef; }
+[data-theme="dark"] :is(.rejected, .delete, .error) { background: #41252e; color: #f0a2b5; }
+[data-theme="dark"] :is(.career-caption, .career-job small, .career-float div > span, .career-summary span, .career-float small, .career-board-heading small) { color: #b1a6c3; }
+[data-theme="dark"] .bar { background: #433459; }
+[data-theme="dark"] .bar-1 { background: #594271; }
+[data-theme="dark"] .bar-2 { background: #775598; }
+[data-theme="dark"] .bar-3 { background: #9670c4; }
+[data-theme="dark"] .bar-4 { background: #b39aff; }
+.welcome-nav, .auth-nav { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.auth-nav { padding: 0; margin-bottom: 50px; }
+.welcome-nav .theme-toggle,
+.auth-nav .theme-toggle {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 19;
+}
+@media (max-width: 600px) {
+  .welcome-nav .theme-toggle,
+  .auth-nav .theme-toggle { right: 14px; bottom: 14px; }
+}
+@media (max-width: 800px) {
+  .shell .topbar { display: flex; padding: 12px 18px; height: auto; }
+  .topbar .top-date { font-size: 0; gap: 10px; }
+  .auth-nav { padding: 0; }
+}
+@media (max-width: 420px) {
+  .auth-nav .brand { font-size: 24px; }
+  .welcome-nav, .auth-nav { gap: 10px; }
+}
