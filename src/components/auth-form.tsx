@@ -35,7 +35,7 @@ export function AuthForm({ register = false }: { register?: boolean }) {
             );
             const json = await r.json();
             if (!r.ok) throw new Error(json.error);
-            location.href = "/dashboard";
+            location.replace("/dashboard");
           } catch (err) {
             setError(err instanceof Error ? err.message : "Unable to connect");
             setBusy(false);
@@ -95,3 +95,4 @@ export function AuthForm({ register = false }: { register?: boolean }) {
     </main>
   );
 }
+
