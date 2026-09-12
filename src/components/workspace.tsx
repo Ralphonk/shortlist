@@ -70,6 +70,27 @@ export function Workspace({
     [error, setError] = useState(""),
     [toast, setToast] = useState("");
   const dialog = useRef<HTMLDialogElement>(null);
+  const loggingOut = useRef(false);
+
+  useEffect(() => {
+    if (demo) return;
+
+    if (!history.state?.shortlistDashboardGuard) {
+      history.pushState(
+        { ...(history.state ?? {}), shortlistDashboardGuard: true },
+        "",
+        location.href,
+      );
+    }
+
+    const keepDashboardOpen = () => {
+      if (!loggingOut.current) history.forward();
+    };
+
+    window.addEventListener("popstate", keepDashboardOpen);
+    return () => window.removeEventListener("popstate", keepDashboardOpen);
+  }, [demo]);
+
   useEffect(() => {
     if (demo) {
       try {
@@ -762,13 +783,15 @@ export function Workspace({
                 className="primary"
                 onClick={async () => {
                   setLogoutBusy(true);
+                  loggingOut.current = true;
                   try {
                     await fetch("/api/auth/logout", {
                       method: "POST",
                       credentials: "include",
                     });
-                    location.href = "/login";
+                    location.replace("/login");
                   } finally {
+                    loggingOut.current = false;
                     setLogoutBusy(false);
                   }
                 }}
@@ -1230,3 +1253,4 @@ export function Workspace({
     </div>
   );
 }
+
