@@ -1,7 +1,12 @@
 import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { ArrowUpRight, CalendarDays, Check, Sparkles, BriefcaseBusiness } from "lucide-react";
-export default function Home() {
+import { getUser } from "@/lib/auth";
+import { redirect } from "next/navigation";
+
+export default async function Home() {
+  if (await getUser()) redirect("/dashboard");
+
   return (
     <main className="welcome">
       <nav className="welcome-nav" aria-label="Main navigation">
@@ -60,3 +65,4 @@ export default function Home() {
     </main>
   );
 }
+
