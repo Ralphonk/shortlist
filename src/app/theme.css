@@ -25,6 +25,8 @@ html[data-theme="dark"] {
   --purple: #b39aff;
   --light: #302545;
   --white: #1b1d29;
+  --scrollbar-track: #171923;
+  --scrollbar-thumb: #7d5fd1;
 }
 [data-theme="dark"] .theme-to-dark { display: none; }
 [data-theme="dark"] .theme-to-light { display: flex; align-items: center; gap: 8px; }

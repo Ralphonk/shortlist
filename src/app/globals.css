@@ -7,9 +7,28 @@
   --purple: #7152dc;
   --light: #f0ebff;
   --white: #fff;
+  --scrollbar-track: #eef1f6;
+  --scrollbar-thumb: #a495ea;
 }
 * {
   box-sizing: border-box;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 999px;
+  border: 2px solid var(--scrollbar-track);
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--purple);
 }
 body {
   margin: 0;
@@ -1224,6 +1243,17 @@ form textarea {
 @media (prefers-reduced-motion: reduce) {
   .route-loader-ring, .route-loader-dots i { animation: none; }
 }
+.recovery-success > svg { color: var(--purple); margin-bottom: 22px; }
+.recovery-success p { color: var(--muted); line-height: 1.7; }
+.recovery-success .primary { margin-top: 18px; }
+.recovery-spinner { animation: spin .8s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .recovery-spinner { animation: none; } }
+.otp-fields { padding: 0; border: 0; margin: 24px 0 12px; min-width: 0; }
+.otp-fields legend { font-size: 12px; margin-bottom: 12px; }
+.otp-inputs { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 9px; }
+.otp-inputs input { text-align: center; font-size: 24px; padding: 14px 0; min-width: 0; }
+.recovery-copy { color: var(--muted); font-size: 13px; line-height: 1.7; overflow-wrap: anywhere; }
+.recovery-change { border: 0; background: none; color: var(--purple); padding: 12px; font-size: 12px; }
 .auth {
   max-width: 440px;
   margin: 55px auto;
