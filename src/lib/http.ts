@@ -3,7 +3,19 @@ import { ZodError } from "zod";
 
 export function checkOrigin(req: NextRequest) {
   const origin = req.headers.get("origin");
-  if (!origin) throw new Error("Invalid request origin");
+  if (!origin) {
+    const referer = req.headers.get("referer");
+    if (!referer) return;
+
+    try {
+      const ref = new URL(referer);
+      if (ref.origin === req.nextUrl.origin) return;
+    } catch {
+      // Ignore malformed referer values and continue with the same-origin fallback.
+    }
+
+    throw new Error("Invalid request origin");
+  }
 
   const allowedOrigins = new Set([req.nextUrl.origin]);
 
@@ -16,6 +28,19 @@ export function checkOrigin(req: NextRequest) {
   }
 
   if (!allowedOrigins.has(origin)) throw new Error("Invalid request origin");
+}
+
+export async function parseRequestBody(req: NextRequest) {
+  const contentType = req.headers.get("content-type") ?? "";
+
+  if (contentType.includes("application/json")) {
+    return await req.json();
+  }
+
+  const form = await req.formData();
+  return Object.fromEntries(
+    [...form.entries()].map(([key, value]) => [key, value instanceof File ? value.name : String(value)]),
+  );
 }
 export function failure(error: unknown) {
   if (error instanceof ZodError)

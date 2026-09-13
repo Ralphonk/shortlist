@@ -76,6 +76,11 @@ export function AuthForm({ register = false }: { register?: boolean }) {
           </div>
         </label>
         <small>At least 10 characters.</small>
+        {!register && (
+          <p>
+            <Link href="/forgot-password">Forgot password?</Link>
+          </p>
+        )}
         {error && (
           <p role="alert" className="error">
             {error}

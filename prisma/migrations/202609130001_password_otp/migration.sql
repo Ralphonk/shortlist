@@ -1,0 +1,7 @@
+ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "resetToken" TEXT;
+ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "resetTokenExpiresAt" TIMESTAMP(3);
+ALTER TABLE "User" ADD COLUMN "resetChallengeId" TEXT;
+ALTER TABLE "User" ADD COLUMN "resetCodeHash" TEXT;
+ALTER TABLE "User" ADD COLUMN "resetAttempts" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "User" ADD COLUMN "resetSentAt" TIMESTAMP(3);
+CREATE UNIQUE INDEX "User_resetChallengeId_key" ON "User"("resetChallengeId");

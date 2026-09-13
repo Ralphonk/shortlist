@@ -45,6 +45,15 @@ export async function getUser() {
       }
     : null;
 }
+
+export function createResetToken() {
+  return randomBytes(32).toString("hex");
+}
+
+export function isResetTokenValid(expiresAt: Date | null) {
+  return !!expiresAt && expiresAt > new Date();
+}
+
 export async function logout() {
   const jar = await cookies();
   const token = jar.get("shortlist-session")?.value;

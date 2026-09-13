@@ -51,3 +51,19 @@ export const authSchema = z.object({
   password: z.string().min(10).max(128),
   name: z.string().trim().min(1).max(100).optional(),
 });
+
+export const forgotPasswordSchema = z.object({
+  email: z
+    .email()
+    .max(254)
+    .transform((v) => v.toLowerCase()),
+});
+
+export const resetPasswordSchema = z.object({
+  token: z.string().trim().min(32).max(256),
+  password: z.string().min(10).max(128),
+});
+export const verifyOtpSchema = z.object({
+  challengeId: z.string().regex(/^[a-f0-9]{64}$/),
+  code: z.string().regex(/^\d{6}$/, "Enter the six-digit code."),
+});
