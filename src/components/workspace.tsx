@@ -68,7 +68,8 @@ export function Workspace({
     [logoutBusy, setLogoutBusy] = useState(false),
     [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false),
     [error, setError] = useState(""),
-    [toast, setToast] = useState("");
+    [toast, setToast] = useState(""),
+    [todayLabel, setTodayLabel] = useState("Today");
   const dialog = useRef<HTMLDialogElement>(null);
   const loggingOut = useRef(false);
 
@@ -105,6 +106,15 @@ export function Workspace({
     if (modal) dialog.current?.showModal();
     else dialog.current?.close();
   }, [modal]);
+  useEffect(() => {
+    setTodayLabel(
+      new Intl.DateTimeFormat("en-US", {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+      }).format(new Date()),
+    );
+  }, []);
   useEffect(() => {
     if (!toast) return;
     const timer = setTimeout(() => setToast(""), 3500);
@@ -409,11 +419,7 @@ export function Workspace({
           </span>
           <span className="top-date">
             <ThemeToggle />
-            {new Date().toLocaleDateString(undefined, {
-              weekday: "short",
-              month: "short",
-              day: "numeric",
-            })}
+            {todayLabel}
             <button
               className="icon-button"
               aria-label="View reminders"
