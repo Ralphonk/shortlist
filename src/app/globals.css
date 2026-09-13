@@ -258,6 +258,10 @@ small {
   width: calc(100% - 235px);
 }
 .topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  backdrop-filter: blur(16px);
   height: 75px;
   background: #ffffffa8;
   border-bottom: 1px solid var(--line);
@@ -1339,6 +1343,7 @@ form textarea {
 @media (max-width: 800px) {
   .sidebar {
     position: static;
+    flex-shrink: 0;
     width: 100%;
     padding: 18px;
   }
@@ -1365,11 +1370,18 @@ form textarea {
     width: 15px;
   }
   .shell {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
   }
   .main {
     margin-left: 0;
     width: 100%;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
   }
   .topbar {
     display: none;
