@@ -7,6 +7,7 @@ import { validateCommand } from "@/lib/commands";
 import { ApplicationDialog } from "./workspace/application-dialog";
 import { ApplicationDrawer } from "./workspace/application-drawer";
 import { LogoutDialog } from "./workspace/logout-dialog";
+import { DeleteApplicationDialog } from "./workspace/delete-application-dialog";
 import { WorkspaceSidebar } from "./workspace/sidebar";
 import { WorkspaceContent } from "./workspace/workspace-content";
 import { type Modal } from "./workspace/shared";
@@ -29,6 +30,7 @@ export function Workspace({
     [busy, setBusy] = useState(false),
     [logoutBusy, setLogoutBusy] = useState(false),
     [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false),
+    [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false),
     [error, setError] = useState(""),
     [toast, setToast] = useState(""),
     [todayLabel, setTodayLabel] = useState("Today");
@@ -196,6 +198,10 @@ export function Workspace({
     setQuery("");
     setFilter("ALL");
   }
+  function requestDelete() {
+    setError("");
+    setDeleteConfirmOpen(true);
+  }
   return (
     <div className="shell">
       <WorkspaceSidebar
@@ -264,6 +270,21 @@ export function Workspace({
           data={data}
           mutate={mutate}
           busy={busy}
+          requestDelete={requestDelete}
+        />
+      )}
+      {deleteConfirmOpen && active && (
+        <DeleteApplicationDialog
+          company={active.company}
+          busy={busy}
+          error={error}
+          onCancel={() => setDeleteConfirmOpen(false)}
+          onConfirm={async () => {
+            if (await mutate("deleteApplication", {}, active.id)) {
+              setDeleteConfirmOpen(false);
+              setSelected(null);
+            }
+          }}
         />
       )}
       <ApplicationDialog

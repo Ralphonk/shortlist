@@ -31,7 +31,7 @@ export default async function Home() {
         </p>
         <div className="actions">
           <Link className="primary" href="/register">
-            Create your workspace →
+            Create your workspace
           </Link>
           <Link className="secondary" href="/demo">
             Explore the demo

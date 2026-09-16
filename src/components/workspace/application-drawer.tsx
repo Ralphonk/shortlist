@@ -8,6 +8,7 @@ export function ApplicationDrawer({
   data,
   mutate,
   busy,
+  requestDelete,
 }: {
   active: Application;
   setSelected: (id: string | null) => void;
@@ -15,6 +16,7 @@ export function ApplicationDrawer({
   data: TrackerData;
   mutate: Mutate;
   busy: boolean;
+  requestDelete: () => void;
 }) {
   return (
     <div className="drawer-backdrop" onClick={() => setSelected(null)}>
@@ -132,20 +134,7 @@ export function ApplicationDrawer({
             <small>{new Date(r.dueAt).toLocaleString()}</small>
           </div>
         ))}
-        <button
-          className="delete"
-          disabled={busy}
-          onClick={async () => {
-            if (
-              confirm(
-                "Delete this application and its interviews, notes and reminders?",
-              )
-            ) {
-              if (await mutate("deleteApplication", {}, active.id))
-                setSelected(null);
-            }
-          }}
-        >
+        <button className="delete" disabled={busy} onClick={requestDelete}>
           Delete application
         </button>
       </section>

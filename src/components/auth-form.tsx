@@ -2,7 +2,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Eye, EyeOff } from "lucide-react";
+import { AlertCircle, Eye, EyeOff, LoaderCircle } from "lucide-react";
 
 export function AuthForm({ register = false }: { register?: boolean }) {
   const [error, setError] = useState(""),
@@ -12,12 +12,15 @@ export function AuthForm({ register = false }: { register?: boolean }) {
   return (
     <main className="auth">
       <nav className="auth-nav" aria-label="Main navigation">
-      <Link href="/" className="brand">
-        ◈ shortlist
-      </Link>
-      <ThemeToggle />
+        <Link href="/" className="brand">
+          ◈ shortlist
+        </Link>
+        <ThemeToggle />
       </nav>
       <form
+        onChange={() => {
+          if (error) setError("");
+        }}
         onSubmit={async (e) => {
           e.preventDefault();
           setBusy(true);
@@ -44,6 +47,21 @@ export function AuthForm({ register = false }: { register?: boolean }) {
       >
         <span className="eyebrow">YOUR NEXT CHAPTER STARTS HERE</span>
         <h1>{register ? "Make your next move." : "Welcome back."}</h1>
+        {error && (
+          <div role="alert" className="error auth-error">
+            <span className="auth-error-icon">
+              <AlertCircle size={17} aria-hidden="true" />
+            </span>
+            <span className="auth-error-copy">
+              <strong>
+                {register
+                  ? "We couldn’t create your account"
+                  : "We couldn’t sign you in"}
+              </strong>
+              <span>{error}</span>
+            </span>
+          </div>
+        )}
         {register && (
           <label>
             Your name
@@ -71,7 +89,11 @@ export function AuthForm({ register = false }: { register?: boolean }) {
               aria-label={showPassword ? "Hide password" : "Show password"}
               onClick={() => setShowPassword((value) => !value)}
             >
-              {showPassword ? <Eye size={18} aria-hidden="true" /> : <EyeOff size={18} aria-hidden="true" />}
+              {showPassword ? (
+                <Eye size={18} aria-hidden="true" />
+              ) : (
+                <EyeOff size={18} aria-hidden="true" />
+              )}
             </button>
           </div>
         </label>
@@ -81,13 +103,21 @@ export function AuthForm({ register = false }: { register?: boolean }) {
             <Link href="/forgot-password">Forgot password?</Link>
           </p>
         )}
-        {error && (
-          <p role="alert" className="error">
-            {error}
-          </p>
-        )}
-        <button className="primary" disabled={busy}>
-          {busy ? "Please wait…" : register ? "Create account" : "Sign in"} →
+        <button className="primary" disabled={busy} aria-busy={busy}>
+          {busy && (
+            <LoaderCircle
+              size={17}
+              className="auth-submit-spinner"
+              aria-hidden="true"
+            />
+          )}
+          {busy
+            ? register
+              ? "Creating account"
+              : "Signing in"
+            : register
+              ? "Create account"
+              : "Sign in"}
         </button>
         <p>
           {register ? "Already registered?" : "New here?"}{" "}
@@ -95,9 +125,8 @@ export function AuthForm({ register = false }: { register?: boolean }) {
             {register ? "Sign in" : "Create an account"}
           </Link>
         </p>
-        <Link href="/demo">Explore without an account →</Link>
+        <Link href="/demo">Explore without an account</Link>
       </form>
     </main>
   );
 }
-

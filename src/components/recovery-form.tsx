@@ -55,7 +55,7 @@ export function RecoveryForm({ token: initialToken }: { token?: string }) {
   if (step === "done") return <section role="status" className="recovery-success">
     <CheckCircle2 size={38} /><h1>Password updated.</h1>
     <p>Sign in with your new password. Your previous sessions have been signed out.</p>
-    <Link className="primary" href="/login">Back to sign in →</Link>
+    <Link className="primary" href="/login">Back to sign in</Link>
   </section>;
 
   return <form onSubmit={async event => {
@@ -119,7 +119,7 @@ export function RecoveryForm({ token: initialToken }: { token?: string }) {
     {error && <p className="error" role="alert">{error}</p>}
     <button className="primary" disabled={busy || (step === "otp" && (readOtpCode() || otpCode).length !== 6)} aria-busy={busy}>
       {busy && <LoaderCircle size={16} className="recovery-spinner" aria-hidden="true" />}
-      {busy ? "Please wait…" : step === "email" ? "Send code →" : step === "otp" ? "Verify code →" : "Update password →"}
+      {busy ? "Please wait…" : step === "email" ? "Send code" : step === "otp" ? "Verify code" : "Update password"}
     </button>
     <p><Link href="/login">Back to sign in</Link></p>
   </form>;

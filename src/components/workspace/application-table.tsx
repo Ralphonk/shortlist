@@ -42,7 +42,7 @@ export function ApplicationTable({
                   {stageLabels[a.stage]}
                 </span>
               </td>
-              <td className="muted">{a.location || "—"}</td>
+              <td className="muted">{a.location || "Not specified"}</td>
               <td className="muted">{date(a.appliedAt)}</td>
               <td>
                 <button
