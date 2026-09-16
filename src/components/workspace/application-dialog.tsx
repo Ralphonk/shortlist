@@ -1,5 +1,9 @@
-import type { Application, TrackerData } from "@/types/tracker";
-import { Check, X } from "lucide-react";
+"use client";
+
+import type { Application, Resume, TrackerData } from "@/types/tracker";
+import { upload } from "@vercel/blob/client";
+import { useEffect, useState } from "react";
+import { Check, FileText, Upload, X } from "lucide-react";
 import { stages, stageLabels, type Modal, type Mutate } from "./shared";
 export function ApplicationDialog({
   dialog,
@@ -7,6 +11,7 @@ export function ApplicationDialog({
   setModal,
   editing,
   active,
+  activeResume,
   selected,
   mutate,
   data,
@@ -18,12 +23,52 @@ export function ApplicationDialog({
   setModal: (value: Modal) => void;
   editing: boolean;
   active: Application | undefined;
+  activeResume: Resume | undefined;
   selected: string | null;
   mutate: Mutate;
   data: TrackerData;
   error: string;
   busy: boolean;
 }) {
+  const [documentUrl, setDocumentUrl] = useState("");
+  const [uploadedName, setUploadedName] = useState("");
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [uploadBusy, setUploadBusy] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadError, setUploadError] = useState("");
+  const [dragActive, setDragActive] = useState(false);
+  const [useDocumentLink, setUseDocumentLink] = useState(false);
+
+  useEffect(() => {
+    if (modal !== "resume") return;
+    const currentUrl = editing ? activeResume?.url || "" : "";
+    setDocumentUrl(currentUrl);
+    setUseDocumentLink(
+      Boolean(currentUrl && !currentUrl.includes(".blob.vercel-storage.com")),
+    );
+    setUploadedName("");
+    setPendingFile(null);
+    setUploadProgress(0);
+    setUploadError("");
+  }, [modal, editing, activeResume]);
+
+  function selectResume(file: File) {
+    setUploadError("");
+    if (file.type !== "application/pdf") {
+      setUploadError("Choose a PDF file.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setUploadError("PDF must be 5 MB or smaller.");
+      return;
+    }
+    setPendingFile(file);
+    setDocumentUrl("");
+    setUploadedName(file.name);
+    setUseDocumentLink(false);
+    setUploadProgress(0);
+  }
+
   return (
     <dialog
       ref={dialog}
@@ -32,7 +77,7 @@ export function ApplicationDialog({
     >
       <form
         key={`${modal}-${editing}`}
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault();
           const fields = Object.fromEntries(new FormData(e.currentTarget));
           if (modal === "application")
@@ -45,7 +90,44 @@ export function ApplicationDialog({
               },
               editing ? selected || undefined : undefined,
             );
-          if (modal === "resume") mutate("saveResume", fields);
+          if (modal === "resume") {
+            let resumeUrl = documentUrl;
+            if (pendingFile) {
+              setUploadBusy(true);
+              setUploadProgress(0);
+              setUploadError("");
+              try {
+                const safeName = pendingFile.name.replace(
+                  /[^a-zA-Z0-9._-]/g,
+                  "-",
+                );
+                const blob = await upload(
+                  `resumes/${crypto.randomUUID()}-${safeName}`,
+                  pendingFile,
+                  {
+                    access: "private",
+                    handleUploadUrl: "/api/resumes/upload",
+                    contentType: "application/pdf",
+                    onUploadProgress: ({ percentage }) =>
+                      setUploadProgress(percentage),
+                  },
+                );
+                resumeUrl = blob.url;
+                setDocumentUrl(blob.url);
+                setUploadProgress(100);
+              } catch {
+                setUploadError("Upload failed. Please try again.");
+                setUploadBusy(false);
+                return;
+              }
+              setUploadBusy(false);
+            }
+            await mutate(
+              "saveResume",
+              { ...fields, url: resumeUrl },
+              editing ? activeResume?.id : undefined,
+            );
+          }
           if (modal === "interview")
             mutate(
               "addInterview",
@@ -54,7 +136,7 @@ export function ApplicationDialog({
                 startsAt: new Date(String(fields.startsAt)).toISOString(),
                 duration: Number(fields.duration),
               },
-              selected || undefined,
+              String(fields.applicationId || selected || "") || undefined,
             );
           if (modal === "reminder")
             mutate(
@@ -63,7 +145,7 @@ export function ApplicationDialog({
                 ...fields,
                 dueAt: new Date(String(fields.dueAt)).toISOString(),
               },
-              selected || undefined,
+              String(fields.applicationId || selected || "") || undefined,
             );
           if (modal === "note")
             mutate("addNote", fields, selected || undefined);
@@ -76,7 +158,9 @@ export function ApplicationDialog({
                 ? "Edit application"
                 : "A new possibility"
               : modal === "resume"
-                ? "Add a resume version"
+                ? editing
+                  ? "Edit resume"
+                  : "Add a resume version"
                 : modal === "interview"
                   ? "Schedule an interview"
                   : modal === "note"
@@ -206,6 +290,7 @@ export function ApplicationDialog({
                 name="name"
                 required
                 maxLength={150}
+                defaultValue={editing ? activeResume?.name : ""}
                 placeholder="Frontend Developer"
               />
             </label>
@@ -215,24 +300,113 @@ export function ApplicationDialog({
                 name="version"
                 required
                 maxLength={50}
+                defaultValue={editing ? activeResume?.version : ""}
                 placeholder="v2 · September 2026"
               />
             </label>
-            <label>
-              Document URL
-              <input
-                name="url"
-                type="url"
-                required
-                placeholder="https://drive.google.com/…"
-              />
-            </label>
-            <small>Use a hosted PDF or a shareable document link.</small>
+            <div className="resume-upload-field">
+              <span className="resume-upload-label">Resume PDF</span>
+              <label
+                className={`resume-dropzone ${dragActive ? "is-dragging" : ""} ${pendingFile || documentUrl ? "has-file" : ""}`}
+                onDragEnter={(event) => {
+                  event.preventDefault();
+                  setDragActive(true);
+                }}
+                onDragOver={(event) => event.preventDefault()}
+                onDragLeave={() => setDragActive(false)}
+                onDrop={(event) => {
+                  event.preventDefault();
+                  setDragActive(false);
+                  const file = event.dataTransfer.files[0];
+                  if (file) selectResume(file);
+                }}
+              >
+                <input
+                  className="resume-file-input"
+                  type="file"
+                  accept="application/pdf,.pdf"
+                  disabled={uploadBusy}
+                  onChange={(event) => {
+                    const file = event.target.files?.[0];
+                    if (file) selectResume(file);
+                    event.target.value = "";
+                  }}
+                />
+                <span className="resume-dropzone-icon">
+                  {pendingFile || documentUrl ? (
+                    <FileText size={22} />
+                  ) : (
+                    <Upload size={22} />
+                  )}
+                </span>
+                <span className="resume-dropzone-copy">
+                  <strong>
+                    {uploadBusy
+                      ? `Uploading ${Math.round(uploadProgress)}%`
+                      : uploadedName ||
+                        (documentUrl
+                          ? "Resume attached"
+                          : "Drop your PDF here")}
+                  </strong>
+                  <small>
+                    {pendingFile || documentUrl
+                      ? "Click to replace this file"
+                      : "or choose from your computer · Max 5 MB"}
+                  </small>
+                </span>
+              </label>
+              {uploadBusy && (
+                <span className="resume-upload-progress">
+                  <i style={{ width: `${uploadProgress}%` }} />
+                </span>
+              )}
+              {uploadError && (
+                <small className="upload-error">{uploadError}</small>
+              )}
+            </div>
+            {!useDocumentLink && (
+              <>
+                <input type="hidden" name="url" value={documentUrl} />
+                <div className="resume-url-divider">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (documentUrl.includes(".blob.vercel-storage.com"))
+                        setDocumentUrl("");
+                      setPendingFile(null);
+                      setUploadedName("");
+                      setUseDocumentLink(true);
+                    }}
+                  >
+                    Use a document link instead
+                  </button>
+                </div>
+              </>
+            )}
+            {useDocumentLink && (
+              <label>
+                Document URL
+                <input
+                  name="url"
+                  type="url"
+                  required
+                  value={documentUrl}
+                  onChange={(event) => {
+                    setDocumentUrl(event.target.value);
+                    setPendingFile(null);
+                    setUploadedName("");
+                  }}
+                  placeholder="https://drive.google.com/…"
+                />
+                <small>Use a shareable PDF or document link.</small>
+              </label>
+            )}
             <label>
               Notes
               <textarea
                 name="notes"
                 maxLength={10000}
+                defaultValue={editing ? activeResume?.notes : ""}
                 placeholder="What changed in this version?"
               />
             </label>
@@ -240,6 +414,20 @@ export function ApplicationDialog({
         )}
         {modal === "interview" && (
           <>
+            <label>
+              Application
+              <select
+                name="applicationId"
+                defaultValue={selected || data.applications[0]?.id}
+                required
+              >
+                {data.applications.map((application) => (
+                  <option key={application.id} value={application.id}>
+                    {application.company} · {application.role}
+                  </option>
+                ))}
+              </select>
+            </label>
             <label>
               Interview title
               <input
@@ -280,6 +468,20 @@ export function ApplicationDialog({
         {modal === "reminder" && (
           <>
             <label>
+              Application
+              <select
+                name="applicationId"
+                defaultValue={selected || data.applications[0]?.id}
+                required
+              >
+                {data.applications.map((application) => (
+                  <option key={application.id} value={application.id}>
+                    {application.company} · {application.role}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
               What needs a follow-up?
               <input
                 name="title"
@@ -319,8 +521,15 @@ export function ApplicationDialog({
           >
             Cancel
           </button>
-          <button className="primary" disabled={busy}>
-            {busy ? "Saving…" : "Save changes"}
+          <button
+            className="primary"
+            disabled={
+              busy ||
+              uploadBusy ||
+              (modal === "resume" && !documentUrl && !pendingFile)
+            }
+          >
+            {uploadBusy ? "Uploading…" : busy ? "Saving…" : "Save changes"}
             <Check size={16} />
           </button>
         </div>

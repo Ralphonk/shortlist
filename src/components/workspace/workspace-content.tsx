@@ -11,6 +11,10 @@ import {
   Plus,
   Files,
   ExternalLink,
+  BellPlus,
+  Upload,
+  Pencil,
+  Trash2,
 } from "lucide-react";
 import type { Application, TrackerData } from "@/types/tracker";
 import { stages, stageLabels, date, type Modal, type Mutate } from "./shared";
@@ -42,6 +46,8 @@ export function WorkspaceContent({
   setSelected,
   busy,
   mutate,
+  editResume,
+  requestDeleteResume,
 }: {
   demo: boolean;
   view: string;
@@ -64,6 +70,8 @@ export function WorkspaceContent({
   setSelected: (id: string | null) => void;
   busy: boolean;
   mutate: Mutate;
+  editResume: (id: string) => void;
+  requestDeleteResume: (id: string) => void;
 }) {
   const stats = [
     [
@@ -93,6 +101,14 @@ export function WorkspaceContent({
       Check,
     ],
   ] as const;
+
+  function openForApplication(kind: "interview" | "reminder") {
+    if (!data.applications.length) {
+      open("application");
+      return;
+    }
+    open(kind);
+  }
 
   return (
     <main className="content">
@@ -264,7 +280,16 @@ export function WorkspaceContent({
             <h2>Interview schedule</h2>
             <span className="muted">Times shown in your local timezone</span>
           </div>
-          <InterviewCards items={interviews} setSelected={setSelected} />
+          <InterviewCards
+            items={interviews}
+            setSelected={setSelected}
+            emptyAction={{
+              label: data.applications.length
+                ? "Schedule interview"
+                : "Add an application first",
+              onClick: () => openForApplication("interview"),
+            }}
+          />
         </section>
       )}
       {view === "Reminders" && (
@@ -308,43 +333,92 @@ export function WorkspaceContent({
             </div>
           ))}
           {!reminders.length && (
-            <div className="empty">
-              No follow-ups yet. Open an application to add a reminder.
+            <div className="empty empty-state">
+              <span className="empty-icon">
+                <BellPlus size={22} aria-hidden="true" />
+              </span>
+              <h2>No reminders yet</h2>
+              <p>Stay ahead of recruiter follow-ups and important deadlines.</p>
+              <button
+                className="primary"
+                onClick={() => openForApplication("reminder")}
+              >
+                <Plus size={17} aria-hidden="true" />
+                {data.applications.length
+                  ? "Add reminder"
+                  : "Add an application first"}
+              </button>
             </div>
           )}
-          <div className="panel-footer">
-            Reminders are shown in this workspace. Email notifications are not
-            enabled.
-          </div>
         </section>
       )}
       {view === "Resumes" && (
         <div className="resume-grid">
           {data.resumes.map((r) => (
             <section className="panel resume-card" key={r.id}>
-              <Files size={28} />
+              <div className="resume-card-header">
+                <span className="resume-file-icon">
+                  <Files size={22} aria-hidden="true" />
+                </span>
+                <span className="badge applied">{r.version}</span>
+              </div>
               <h2>{r.name}</h2>
-              <span className="badge applied">{r.version}</span>
-              <p>{r.notes || "Ready for your next application."}</p>
-              <small>
-                {data.applications.filter((a) => a.resumeId === r.id).length}{" "}
-                applications · Added {date(r.createdAt)}
-              </small>
-              <a href={r.url} target="_blank" rel="noreferrer">
-                Open resume <ExternalLink size={15} />
+              <p className="resume-notes">
+                {r.notes || "Ready for your next application."}
+              </p>
+              <div className="resume-meta">
+                <span>
+                  <BriefcaseBusiness size={14} aria-hidden="true" />
+                  {
+                    data.applications.filter((a) => a.resumeId === r.id).length
+                  }{" "}
+                  applications
+                </span>
+                <span>
+                  <CalendarDays size={14} aria-hidden="true" />
+                  Added {date(r.createdAt)}
+                </span>
+              </div>
+              <a
+                className="resume-open"
+                href={
+                  r.url.includes(".blob.vercel-storage.com")
+                    ? `/api/resumes/${r.id}`
+                    : r.url
+                }
+                target="_blank"
+                rel="noreferrer"
+              >
+                View document <ExternalLink size={15} />
               </a>
+              <div className="resume-card-actions">
+                <button className="secondary" onClick={() => editResume(r.id)}>
+                  <Pencil size={14} aria-hidden="true" />
+                  Edit
+                </button>
+                <button
+                  className="resume-delete"
+                  onClick={() => requestDeleteResume(r.id)}
+                >
+                  <Trash2 size={14} aria-hidden="true" />
+                  Delete
+                </button>
+              </div>
             </section>
           ))}
           {!data.resumes.length && (
-            <section className="panel empty">
-              <Files size={32} />
-              <h2>A place for every version.</h2>
+            <section className="panel empty empty-state">
+              <span className="empty-icon">
+                <Files size={24} aria-hidden="true" />
+              </span>
+              <h2>No resumes uploaded</h2>
               <p>
                 Add a hosted PDF or Google Drive link, then attach it to an
                 application.
               </p>
               <button className="primary" onClick={() => open("resume")}>
-                Add your first resume
+                <Upload size={17} aria-hidden="true" />
+                Upload resume
               </button>
             </section>
           )}

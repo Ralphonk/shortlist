@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { del } from "@vercel/blob";
 import { getUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { checkOrigin, failure } from "@/lib/http";
@@ -26,9 +27,33 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { action, id, data } = body;
     if (action === "saveResume") {
-      await db.resume.create({
-        data: { ...resumeSchema.parse(data), userId: user.id },
+      const parsed = resumeSchema.parse(data);
+      if (id) {
+        const previous = await db.resume.findFirst({
+          where: { id, userId: user.id },
+        });
+        if (!previous) return new NextResponse(null, { status: 404 });
+        const updated = await db.resume.updateMany({
+          where: { id, userId: user.id },
+          data: parsed,
+        });
+        if (!updated.count) return new NextResponse(null, { status: 404 });
+        if (previous.url !== parsed.url) await deleteBlob(previous.url);
+      } else {
+        await db.resume.create({ data: { ...parsed, userId: user.id } });
+      }
+    } else if (action === "deleteResume") {
+      if (typeof id !== "string")
+        return new NextResponse(null, { status: 404 });
+      const resume = await db.resume.findFirst({
+        where: { id, userId: user.id },
       });
+      if (!resume) return new NextResponse(null, { status: 404 });
+      const deleted = await db.resume.deleteMany({
+        where: { id, userId: user.id },
+      });
+      if (!deleted.count) return new NextResponse(null, { status: 404 });
+      await deleteBlob(resume.url);
     } else if (action === "saveApplication") {
       const parsed = applicationSchema.parse(data);
       if (
@@ -81,5 +106,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(await getTracker(user.id));
   } catch (e) {
     return failure(e);
+  }
+}
+
+async function deleteBlob(url: string) {
+  if (!url.includes(".blob.vercel-storage.com")) return;
+  try {
+    await del(url);
+  } catch (error) {
+    console.error("Unable to clean up resume blob", error);
   }
 }

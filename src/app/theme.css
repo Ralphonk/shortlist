@@ -96,6 +96,32 @@ html[data-theme="dark"] {
 [data-theme="dark"] .danger-primary:hover:not(:disabled) {
   background: #ca5c72;
 }
+[data-theme="dark"] .resume-delete {
+  color: #f2a0b2;
+  background: #3b252d;
+  border-color: #57333e;
+}
+[data-theme="dark"] .resume-delete:hover {
+  background: #472a34;
+}
+[data-theme="dark"] .resume-card:hover {
+  border-color: #493d61;
+  box-shadow: 0 18px 42px #0003;
+}
+[data-theme="dark"] .resume-file-icon {
+  background: #302545;
+  border-color: #493765;
+}
+[data-theme="dark"] .resume-dropzone {
+  background: #181a25;
+  border-color: #494258;
+}
+[data-theme="dark"] .resume-dropzone:hover,
+[data-theme="dark"] .resume-dropzone.is-dragging {
+  background: #211c31;
+  border-color: var(--purple);
+  box-shadow: 0 0 0 3px #9c7aeb20;
+}
 [data-theme="dark"]
   :is(
     .brand,
@@ -235,6 +261,11 @@ html[data-theme="dark"] {
 [data-theme="dark"] .skeleton-pill,
 [data-theme="dark"] .skeleton-action {
   background: #342d48;
+}
+[data-theme="dark"] .empty-state .empty-icon {
+  background: #302545;
+  border-color: #4b3a68;
+  box-shadow: 0 12px 30px #0003;
 }
 [data-theme="dark"]
   :is(

@@ -24,6 +24,7 @@ export function validateCommand(action: string, data: Record<string, unknown>) {
         .object({ reminderId: z.string().min(1), done: z.boolean() })
         .parse(data);
     case "deleteApplication":
+    case "deleteResume":
       return {};
     default:
       throw new Error("Unknown action");

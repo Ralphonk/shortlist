@@ -8,6 +8,7 @@ import { ApplicationDialog } from "./workspace/application-dialog";
 import { ApplicationDrawer } from "./workspace/application-drawer";
 import { LogoutDialog } from "./workspace/logout-dialog";
 import { DeleteApplicationDialog } from "./workspace/delete-application-dialog";
+import { DeleteResumeDialog } from "./workspace/delete-resume-dialog";
 import { WorkspaceSidebar } from "./workspace/sidebar";
 import { WorkspaceContent } from "./workspace/workspace-content";
 import { type Modal } from "./workspace/shared";
@@ -31,8 +32,13 @@ export function Workspace({
     [logoutBusy, setLogoutBusy] = useState(false),
     [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false),
     [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false),
+    [editingResumeId, setEditingResumeId] = useState<string | null>(null),
+    [deleteResumeId, setDeleteResumeId] = useState<string | null>(null),
     [error, setError] = useState(""),
-    [toast, setToast] = useState(""),
+    [toast, setToast] = useState<{
+      message: string;
+      tone: "success" | "deleted";
+    } | null>(null),
     [todayLabel, setTodayLabel] = useState("Today");
   const dialog = useRef<HTMLDialogElement>(null);
   const loggingOut = useRef(false);
@@ -81,10 +87,16 @@ export function Workspace({
   }, []);
   useEffect(() => {
     if (!toast) return;
-    const timer = setTimeout(() => setToast(""), 3500);
+    const timer = setTimeout(() => setToast(null), 3500);
     return () => clearTimeout(timer);
   }, [toast]);
   const active = data.applications.find((a) => a.id === selected);
+  const activeResume = data.resumes.find(
+    (resume) => resume.id === editingResumeId,
+  );
+  const resumeToDelete = data.resumes.find(
+    (resume) => resume.id === deleteResumeId,
+  );
   const interviews = data.applications
     .flatMap((a) => a.interviews.map((i) => ({ ...i, application: a })))
     .sort((a, b) => a.startsAt.localeCompare(b.startsAt));
@@ -114,13 +126,25 @@ export function Workspace({
         next = structuredClone(data);
         const uid = crypto.randomUUID(),
           now = new Date().toISOString();
-        if (action === "saveResume")
-          next.resumes.unshift({
-            ...payload,
-            id: uid,
-            createdAt: now,
-          } as TrackerData["resumes"][number]);
-        else if (action === "saveApplication") {
+        if (action === "saveResume") {
+          if (id)
+            next.resumes = next.resumes.map((resume) =>
+              resume.id === id ? { ...resume, ...payload } : resume,
+            );
+          else
+            next.resumes.unshift({
+              ...payload,
+              id: uid,
+              createdAt: now,
+            } as TrackerData["resumes"][number]);
+        } else if (action === "deleteResume") {
+          next.resumes = next.resumes.filter((resume) => resume.id !== id);
+          next.applications = next.applications.map((application) =>
+            application.resumeId === id
+              ? { ...application, resumeId: null }
+              : application,
+          );
+        } else if (action === "saveApplication") {
           if (id)
             next.applications = next.applications.map((a) =>
               a.id === id ? { ...a, ...payload } : a,
@@ -178,7 +202,18 @@ export function Workspace({
       }
       setData(next);
       setModal(null);
-      setToast("Changes saved");
+      setEditingResumeId(null);
+      setToast(
+        action === "deleteApplication" || action === "deleteResume"
+          ? {
+              message:
+                action === "deleteResume"
+                  ? "Resume deleted"
+                  : "Application deleted",
+              tone: "deleted",
+            }
+          : { message: "Changes saved", tone: "success" },
+      );
       return true;
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong");
@@ -201,6 +236,16 @@ export function Workspace({
   function requestDelete() {
     setError("");
     setDeleteConfirmOpen(true);
+  }
+  function editResume(id: string) {
+    setError("");
+    setEditing(true);
+    setEditingResumeId(id);
+    setModal("resume");
+  }
+  function requestDeleteResume(id: string) {
+    setError("");
+    setDeleteResumeId(id);
   }
   return (
     <div className="shell">
@@ -252,6 +297,8 @@ export function Workspace({
           setSelected={setSelected}
           busy={busy}
           mutate={mutate}
+          editResume={editResume}
+          requestDeleteResume={requestDeleteResume}
         />
       </div>
       {logoutConfirmOpen && (
@@ -287,12 +334,30 @@ export function Workspace({
           }}
         />
       )}
+      {resumeToDelete && (
+        <DeleteResumeDialog
+          name={resumeToDelete.name}
+          attachedCount={
+            data.applications.filter(
+              (application) => application.resumeId === resumeToDelete.id,
+            ).length
+          }
+          busy={busy}
+          error={error}
+          onCancel={() => setDeleteResumeId(null)}
+          onConfirm={async () => {
+            if (await mutate("deleteResume", {}, resumeToDelete.id))
+              setDeleteResumeId(null);
+          }}
+        />
+      )}
       <ApplicationDialog
         dialog={dialog}
         modal={modal}
         setModal={setModal}
         editing={editing}
         active={active}
+        activeResume={activeResume}
         selected={selected}
         mutate={mutate}
         data={data}
@@ -300,9 +365,9 @@ export function Workspace({
         busy={busy}
       />
       {toast && (
-        <div className="toast" role="status">
-          <Check size={17} />
-          {toast}
+        <div className={`toast toast-${toast.tone}`} role="status">
+          <Check size={17} aria-hidden="true" />
+          {toast.message}
         </div>
       )}
     </div>
