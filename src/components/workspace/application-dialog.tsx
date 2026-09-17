@@ -72,7 +72,11 @@ export function ApplicationDialog({
   return (
     <dialog
       ref={dialog}
-      onCancel={() => setModal(null)}
+      onCancel={(event) => {
+        // A file input also emits a bubbling `cancel` event when its native
+        // picker is dismissed. Only close for the dialog's own cancel event.
+        if (event.target === event.currentTarget) setModal(null);
+      }}
       onClose={() => setModal(null)}
     >
       <form
