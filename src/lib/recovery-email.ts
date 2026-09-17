@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { recoveryEmailTemplate } from "@/lib/recovery-email-template";
 
 export function recoveryEmailConfig() {
   const host = process.env.SMTP_HOST;
@@ -33,8 +34,7 @@ export async function sendRecoveryEmail(email: string, code: string, config: Non
   const result = await recoveryTransport(config).sendMail({
     from: config.from,
     to: email,
-    subject: "Reset your Shortlist password",
-    text: `Your Shortlist password reset code is:\n\n${code}\n\nEnter it on the password reset page. It expires in 5 minutes. Never share this code. If you did not request this, you can ignore this email.`,
+    ...recoveryEmailTemplate(code),
   });
   if (!result.accepted.length) throw new Error("Recovery email delivery failed");
 }
