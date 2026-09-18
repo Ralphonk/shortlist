@@ -12,16 +12,18 @@ import { DeleteResumeDialog } from "./workspace/delete-resume-dialog";
 import { WorkspaceSidebar } from "./workspace/sidebar";
 import { WorkspaceContent } from "./workspace/workspace-content";
 import { type Modal } from "./workspace/shared";
+import type { AccountUser } from "./workspace/account-menu";
 export function Workspace({
   initial,
   user,
   demo = false,
 }: {
   initial: TrackerData;
-  user: { name: string; email: string };
+  user: AccountUser;
   demo?: boolean;
 }) {
   const [data, setData] = useState(initial),
+    [currentUser, setCurrentUser] = useState(user),
     [view, setView] = useState("Overview"),
     [query, setQuery] = useState(""),
     [filter, setFilter] = useState("ALL"),
@@ -46,20 +48,30 @@ export function Workspace({
   useEffect(() => {
     if (demo) return;
 
-    if (!history.state?.shortlistDashboardGuard) {
-      history.pushState(
-        { ...(history.state ?? {}), shortlistDashboardGuard: true },
-        "",
-        location.href,
-      );
-    }
-
-    const keepDashboardOpen = () => {
-      if (!loggingOut.current) history.forward();
+    let active = true;
+    const verifySession = async () => {
+      try {
+        const response = await fetch("/api/auth/session", {
+          credentials: "include",
+          cache: "no-store",
+        });
+        if (active && response.status === 401) location.replace("/login");
+      } catch {
+        // A temporary network failure should not sign out an active user.
+      }
+    };
+    const verifyVisibleSession = () => {
+      if (document.visibilityState === "visible") void verifySession();
     };
 
-    window.addEventListener("popstate", keepDashboardOpen);
-    return () => window.removeEventListener("popstate", keepDashboardOpen);
+    void verifySession();
+    window.addEventListener("pageshow", verifySession);
+    document.addEventListener("visibilitychange", verifyVisibleSession);
+    return () => {
+      active = false;
+      window.removeEventListener("pageshow", verifySession);
+      document.removeEventListener("visibilitychange", verifyVisibleSession);
+    };
   }, [demo]);
 
   useEffect(() => {
@@ -253,10 +265,10 @@ export function Workspace({
         view={view}
         changeView={changeView}
         pendingCount={pending.length}
-        user={user}
+        user={currentUser}
         demo={demo}
-        logoutBusy={logoutBusy}
         setLogoutConfirmOpen={setLogoutConfirmOpen}
+        onUserUpdate={setCurrentUser}
       />
       <div className="main">
         <header className="topbar">
@@ -278,7 +290,7 @@ export function Workspace({
         <WorkspaceContent
           demo={demo}
           view={view}
-          user={user}
+          user={currentUser}
           open={open}
           error={error}
           modal={modal}

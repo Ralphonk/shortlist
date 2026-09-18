@@ -265,6 +265,262 @@ small {
   background: #ece6dc;
   color: #76664d;
   font-size: 11px;
+  overflow: hidden;
+  flex: 0 0 auto;
+}
+.avatar-image {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+.account-menu-root {
+  position: relative;
+  width: 100%;
+}
+.account-trigger {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 6px;
+  margin: -6px;
+  color: inherit;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  border-radius: 9px;
+}
+.account-trigger:hover,
+.account-trigger[aria-expanded="true"] {
+  background: var(--light);
+}
+.account-trigger-copy {
+  min-width: 0;
+  flex: 1;
+}
+.account-trigger-copy strong,
+.account-trigger-copy small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.account-trigger-copy strong {
+  font-size: 12px;
+}
+.account-trigger-copy small {
+  margin-top: 4px;
+  font-size: 10px;
+}
+.account-trigger > svg {
+  transition: transform 160ms ease;
+}
+.account-chevron-open {
+  transform: rotate(180deg);
+}
+.account-menu-compact {
+  width: auto;
+}
+.account-menu-compact .account-trigger {
+  width: auto;
+  margin: 0;
+  padding: 2px;
+  border-radius: 50%;
+}
+.account-dropdown {
+  position: absolute;
+  z-index: 50;
+  left: 0;
+  bottom: calc(100% + 14px);
+  width: 260px;
+  overflow: hidden;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  box-shadow: 0 18px 50px rgba(29, 21, 46, 0.16);
+  animation: popup-card-in 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.account-dropdown-head {
+  padding: 16px;
+  border-bottom: 1px solid var(--line);
+}
+.account-dropdown-head strong,
+.account-dropdown-head span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.account-dropdown-head strong {
+  font-size: 13px;
+}
+.account-dropdown-head span {
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.account-dropdown-actions {
+  padding: 6px;
+}
+.account-dropdown-actions button,
+.account-logout {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  border-radius: 7px;
+  font-size: 12px;
+}
+.account-dropdown-actions button:hover:not(:disabled),
+.account-logout:hover {
+  background: var(--light);
+}
+.account-dropdown-actions button:disabled {
+  cursor: not-allowed;
+}
+.account-dropdown-actions button > span {
+  display: grid;
+  gap: 2px;
+}
+.account-dropdown-actions small {
+  color: var(--muted);
+  font-size: 10px;
+}
+.account-logout {
+  padding: 13px 16px;
+  color: #ad4055;
+  border-top: 1px solid var(--line);
+  border-radius: 0;
+}
+.account-demo-note {
+  padding: 11px 16px;
+  color: var(--muted);
+  border-top: 1px solid var(--line);
+  font-size: 10px;
+  line-height: 1.4;
+}
+.account-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(24, 20, 32, 0.38);
+  backdrop-filter: blur(3px);
+  animation: popup-backdrop-in 180ms ease-out both;
+}
+.account-dialog {
+  width: min(470px, 100%);
+  max-height: calc(100dvh - 40px);
+  overflow-y: auto;
+  padding: 26px;
+  color: var(--ink);
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 20px 100px #17132230;
+  animation: popup-card-in 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.account-dialog .dialog-heading {
+  align-items: flex-start;
+}
+.account-dialog .dialog-heading h2 {
+  margin-top: 5px;
+}
+.profile-photo-field {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 4px 14px;
+  margin-bottom: 22px;
+}
+.profile-avatar {
+  grid-row: 1 / 3;
+  width: 64px;
+  height: 64px;
+  font-size: 17px;
+}
+.profile-photo-button {
+  width: max-content;
+  flex-direction: row;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  padding: 8px 11px;
+  color: var(--purple);
+  background: var(--light);
+  border-radius: 7px;
+  cursor: pointer;
+}
+.profile-photo-button input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+.profile-photo-field > small {
+  color: var(--muted);
+  font-size: 10px;
+}
+.account-dialog label > small {
+  color: var(--muted);
+  font-weight: 400;
+}
+.account-dialog input:disabled {
+  color: var(--muted);
+  background: var(--bg);
+  cursor: not-allowed;
+}
+.account-dialog .error {
+  margin: 0;
+}
+.account-success {
+  padding: 14px;
+  color: #397458;
+  background: #edf8f2;
+  border-radius: 8px;
+}
+.account-success-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 10px 4px;
+  text-align: center;
+}
+.account-success-icon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin-bottom: 16px;
+  color: #397458;
+  background: #edf8f2;
+  border: 1px solid #ccebdd;
+  border-radius: 50%;
+}
+.account-success-state h3 {
+  margin: 0 0 8px;
+  font-size: 20px;
+  letter-spacing: -0.3px;
+}
+.account-success-state p {
+  max-width: 300px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+.account-success-actions {
+  justify-content: center;
+  margin-top: 26px;
 }
 .main {
   margin-left: 235px;

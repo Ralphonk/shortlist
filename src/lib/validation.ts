@@ -67,3 +67,18 @@ export const verifyOtpSchema = z.object({
   challengeId: z.string().regex(/^[a-f0-9]{64}$/),
   code: z.string().regex(/^\d{6}$/, "Enter the six-digit code."),
 });
+
+export const profileSchema = z.object({
+  name: z.string().trim().min(1, "Enter your name").max(100),
+  avatarUrl: z.union([z.literal(""), z.url().max(2048)]).optional(),
+});
+
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, "Enter your current password").max(128),
+    newPassword: z.string().min(10, "Use at least 10 characters").max(128),
+  })
+  .refine((data) => data.currentPassword !== data.newPassword, {
+    message: "Your new password must be different",
+    path: ["newPassword"],
+  });

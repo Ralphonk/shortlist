@@ -42,6 +42,7 @@ export async function getUser() {
         id: session.user.id,
         name: session.user.name,
         email: session.user.email,
+        avatarUrl: session.user.avatarUrl,
       }
     : null;
 }

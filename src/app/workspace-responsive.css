@@ -48,6 +48,12 @@
     align-items: center;
     gap: 8px;
   }
+  .mobile-account .account-dropdown {
+    top: calc(100% + 12px);
+    right: 0;
+    bottom: auto;
+    left: auto;
+  }
   .mobile-account .icon-button,
   .mobile-account .theme-toggle {
     width: 40px;

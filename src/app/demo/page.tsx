@@ -5,7 +5,7 @@ export default function Page() {
   return (
     <Workspace
       initial={demoData()}
-      user={{ name: "Alex Morgan", email: "Demo workspace" }}
+      user={{ name: "Alex Morgan", email: "alex@example.com", avatarUrl: null }}
       demo
     />
   );

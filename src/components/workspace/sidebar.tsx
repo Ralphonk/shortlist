@@ -1,23 +1,23 @@
 import Link from "next/link";
-import { LogOut } from "lucide-react";
 import { navigation } from "./shared";
 import { ThemeToggle } from "../theme-toggle";
+import { AccountMenu, type AccountUser } from "./account-menu";
 export function WorkspaceSidebar({
   view,
   changeView,
   pendingCount,
   user,
   demo,
-  logoutBusy,
   setLogoutConfirmOpen,
+  onUserUpdate,
 }: {
   view: string;
   changeView: (view: string) => void;
   pendingCount: number;
-  user: { name: string; email: string };
+  user: AccountUser;
   demo: boolean;
-  logoutBusy: boolean;
   setLogoutConfirmOpen: (open: boolean) => void;
+  onUserUpdate: (user: AccountUser) => void;
 }) {
   return (
     <aside className="sidebar">
@@ -26,24 +26,14 @@ export function WorkspaceSidebar({
           ◈ shortlist<span>YOUR NEXT CHAPTER</span>
         </Link>
         <div className="mobile-account">
-          <span className="avatar" title={user.name} aria-label={user.name}>
-            {user.name
-              .split(" ")
-              .map((n) => n[0])
-              .join("")
-              .slice(0, 2)}
-          </span>
+          <AccountMenu
+            compact
+            user={user}
+            demo={demo}
+            onUserUpdate={onUserUpdate}
+            onLogout={() => setLogoutConfirmOpen(true)}
+          />
           <ThemeToggle />
-          {!demo && (
-            <button
-              className="icon-button"
-              aria-label="Sign out"
-              disabled={logoutBusy}
-              onClick={() => setLogoutConfirmOpen(true)}
-            >
-              <LogOut size={18} />
-            </button>
-          )}
         </div>
       </div>
       <div className="workspace-label">PERSONAL WORKSPACE</div>
@@ -77,27 +67,12 @@ export function WorkspaceSidebar({
         <div className="tip-line" />
       </div>
       <div className="user">
-        <span className="avatar">
-          {user.name
-            .split(" ")
-            .map((n) => n[0])
-            .join("")
-            .slice(0, 2)}
-        </span>
-        <div>
-          <strong>{user.name}</strong>
-          <small>{demo ? "Demo workspace" : "Personal account"}</small>
-        </div>
-        {!demo && (
-          <button
-            className="icon-button"
-            aria-label="Sign out"
-            disabled={logoutBusy}
-            onClick={() => setLogoutConfirmOpen(true)}
-          >
-            <LogOut size={16} />
-          </button>
-        )}
+        <AccountMenu
+          user={user}
+          demo={demo}
+          onUserUpdate={onUserUpdate}
+          onLogout={() => setLogoutConfirmOpen(true)}
+        />
       </div>
     </aside>
   );
