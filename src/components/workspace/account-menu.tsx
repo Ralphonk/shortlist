@@ -398,9 +398,9 @@ function CropPhotoDialog({
     Math.abs(Math.cos(radians)) + Math.abs(Math.sin(radians));
   const baseScale = natural.width
     ? Math.max(
-        (cropSize * rotationExtent) / natural.width,
-        (cropSize * rotationExtent) / natural.height,
-      )
+      (cropSize * rotationExtent) / natural.width,
+      (cropSize * rotationExtent) / natural.height,
+    )
     : 1;
   const scale = baseScale * zoom;
   const rendered = {
