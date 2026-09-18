@@ -488,6 +488,59 @@ small {
   background: #edf8f2;
   border-radius: 8px;
 }
+.crop-dialog {
+  width: min(390px, 100%);
+}
+.crop-help {
+  margin: -8px 0 18px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.crop-viewport {
+  position: relative;
+  width: 240px;
+  height: 240px;
+  margin: 0 auto 22px;
+  overflow: hidden;
+  background: #11121a;
+  border-radius: 10px;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+.crop-viewport:active {
+  cursor: grabbing;
+}
+.crop-viewport img {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  max-width: none;
+  pointer-events: none;
+  user-select: none;
+}
+.crop-ring {
+  position: absolute;
+  inset: 8px;
+  border: 2px solid #ffffffd9;
+  border-radius: 50%;
+  box-shadow: 0 0 0 120px #090a1191;
+  pointer-events: none;
+}
+.crop-zoom {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  align-items: center;
+  gap: 9px;
+  margin: 0;
+  color: var(--muted);
+}
+.crop-zoom input {
+  padding: 0;
+  accent-color: var(--purple);
+  box-shadow: none;
+}
 .account-success-state {
   display: flex;
   flex-direction: column;

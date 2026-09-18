@@ -11,6 +11,7 @@ import {
   LogOut,
   Pencil,
   Upload,
+  ZoomIn,
   X,
 } from "lucide-react";
 
@@ -22,13 +23,25 @@ export type AccountUser = {
 
 function avatarSource(avatarUrl?: string | null) {
   return avatarUrl?.includes(".blob.vercel-storage.com")
-    ? "/api/profile/avatar"
+    ? `/api/profile/avatar?v=${encodeURIComponent(avatarUrl)}`
     : avatarUrl;
 }
 
 function Initials({ user }: { user: AccountUser }) {
   const source = avatarSource(user.avatarUrl);
-  if (source) return <img className="avatar-image" src={source} alt="" />;
+  const [imageFailed, setImageFailed] = useState(false);
+
+  useEffect(() => setImageFailed(false), [source]);
+
+  if (source && !imageFailed)
+    return (
+      <img
+        className="avatar-image"
+        src={source}
+        alt=""
+        onError={() => setImageFailed(true)}
+      />
+    );
   return (
     <>
       {user.name
@@ -190,6 +203,10 @@ function ProfileDialog({
   const [name, setName] = useState(user.name);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState(avatarSource(user.avatarUrl) ?? "");
+  const [cropCandidate, setCropCandidate] = useState<{
+    file: File;
+    url: string;
+  } | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -199,6 +216,24 @@ function ProfileDialog({
     },
     [preview],
   );
+
+  if (cropCandidate)
+    return (
+      <CropPhotoDialog
+        candidate={cropCandidate}
+        onCancel={() => {
+          URL.revokeObjectURL(cropCandidate.url);
+          setCropCandidate(null);
+        }}
+        onApply={(cropped) => {
+          URL.revokeObjectURL(cropCandidate.url);
+          setFile(cropped);
+          setPreview(URL.createObjectURL(cropped));
+          setCropCandidate(null);
+          setError("");
+        }}
+      />
+    );
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
@@ -269,6 +304,7 @@ function ProfileDialog({
                   className="avatar-image"
                   src={preview}
                   alt="Profile preview"
+                  onError={() => setPreview("")}
                 />
               ) : (
                 <Initials user={{ ...user, name }} />
@@ -286,8 +322,10 @@ function ProfileDialog({
                     setError("Photo must be 2 MB or smaller");
                     return;
                   }
-                  setFile(next);
-                  setPreview(URL.createObjectURL(next));
+                  setCropCandidate({
+                    file: next,
+                    url: URL.createObjectURL(next),
+                  });
                   setError("");
                 }}
               />
@@ -318,6 +356,181 @@ function ProfileDialog({
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  );
+}
+
+const CROP_SIZE = 240;
+
+function CropPhotoDialog({
+  candidate,
+  onCancel,
+  onApply,
+}: {
+  candidate: { file: File; url: string };
+  onCancel: () => void;
+  onApply: (file: File) => void;
+}) {
+  const image = useRef<HTMLImageElement>(null);
+  const drag = useRef<{
+    x: number;
+    y: number;
+    left: number;
+    top: number;
+  } | null>(null);
+  const [natural, setNatural] = useState({ width: 0, height: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+
+  const baseScale = natural.width
+    ? Math.max(CROP_SIZE / natural.width, CROP_SIZE / natural.height)
+    : 1;
+  const scale = baseScale * zoom;
+  const rendered = {
+    width: natural.width * scale,
+    height: natural.height * scale,
+  };
+  const limits = {
+    x: Math.max(0, (rendered.width - CROP_SIZE) / 2),
+    y: Math.max(0, (rendered.height - CROP_SIZE) / 2),
+  };
+  const clampOffset = (next: { x: number; y: number }) => ({
+    x: Math.max(-limits.x, Math.min(limits.x, next.x)),
+    y: Math.max(-limits.y, Math.min(limits.y, next.y)),
+  });
+
+  function applyCrop() {
+    const source = image.current;
+    if (!source || !natural.width) return;
+    const canvas = document.createElement("canvas");
+    canvas.width = 512;
+    canvas.height = 512;
+    const context = canvas.getContext("2d");
+    if (!context) return;
+    const left = (CROP_SIZE - rendered.width) / 2 + offset.x;
+    const top = (CROP_SIZE - rendered.height) / 2 + offset.y;
+    context.drawImage(
+      source,
+      -left / scale,
+      -top / scale,
+      CROP_SIZE / scale,
+      CROP_SIZE / scale,
+      0,
+      0,
+      512,
+      512,
+    );
+    canvas.toBlob(
+      (blob) => {
+        if (!blob) return;
+        onApply(new File([blob], "profile-photo.webp", { type: "image/webp" }));
+      },
+      "image/webp",
+      0.9,
+    );
+  }
+
+  return (
+    <div className="account-dialog-backdrop">
+      <div
+        className="account-dialog crop-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="crop-title"
+      >
+        <div className="dialog-heading">
+          <div>
+            <span className="eyebrow">PROFILE PHOTO</span>
+            <h2 id="crop-title">Crop your photo</h2>
+          </div>
+          <button
+            type="button"
+            className="icon-button"
+            aria-label="Cancel cropping"
+            onClick={onCancel}
+          >
+            <X size={18} />
+          </button>
+        </div>
+        <p className="crop-help">
+          Drag to reposition your photo, then use the slider to zoom.
+        </p>
+        <div
+          className="crop-viewport"
+          onPointerDown={(event) => {
+            event.currentTarget.setPointerCapture(event.pointerId);
+            drag.current = {
+              x: event.clientX,
+              y: event.clientY,
+              left: offset.x,
+              top: offset.y,
+            };
+          }}
+          onPointerMove={(event) => {
+            if (!drag.current) return;
+            setOffset(
+              clampOffset({
+                x: drag.current.left + event.clientX - drag.current.x,
+                y: drag.current.top + event.clientY - drag.current.y,
+              }),
+            );
+          }}
+          onPointerUp={() => {
+            drag.current = null;
+          }}
+          onPointerCancel={() => {
+            drag.current = null;
+          }}
+        >
+          <img
+            ref={image}
+            src={candidate.url}
+            alt="Photo to crop"
+            draggable={false}
+            onLoad={(event) =>
+              setNatural({
+                width: event.currentTarget.naturalWidth,
+                height: event.currentTarget.naturalHeight,
+              })
+            }
+            style={{
+              width: rendered.width,
+              height: rendered.height,
+              transform: `translate(calc(-50% + ${offset.x}px), calc(-50% + ${offset.y}px))`,
+            }}
+          />
+          <span className="crop-ring" aria-hidden="true" />
+        </div>
+        <label className="crop-zoom">
+          <ZoomIn size={17} />
+          <span>Zoom</span>
+          <input
+            type="range"
+            min="1"
+            max="3"
+            step="0.01"
+            value={zoom}
+            onChange={(event) => {
+              const next = Number(event.target.value);
+              setZoom(next);
+              setOffset({ x: 0, y: 0 });
+            }}
+          />
+        </label>
+        <div className="dialog-actions">
+          <button type="button" className="secondary" onClick={onCancel}>
+            Cancel
+          </button>
+          <button
+            type="button"
+            className="primary"
+            onClick={applyCrop}
+            disabled={!natural.width}
+          >
+            Apply crop
+          </button>
+        </div>
       </div>
     </div>
   );
