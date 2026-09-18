@@ -1,0 +1,241 @@
+.mobile-account,
+.nav-label-mobile {
+  display: none;
+}
+
+.main,
+.panel,
+.page-heading > div {
+  min-width: 0;
+}
+
+@media (max-width: 1024px) {
+  .shell {
+    flex-direction: column;
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .sidebar {
+    position: relative;
+    inset: auto;
+    flex-shrink: 0;
+    width: 100%;
+    padding: 12px 18px 10px;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    z-index: 20;
+  }
+  .sidebar-brand-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    min-height: 40px;
+  }
+  .sidebar .brand {
+    font-size: 24px;
+    flex-shrink: 0;
+  }
+  .sidebar .brand span,
+  .sidebar .workspace-label,
+  .sidebar .sidebar-tip,
+  .sidebar > .user {
+    display: none;
+  }
+  .mobile-account {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .mobile-account .icon-button,
+  .mobile-account .theme-toggle {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+  }
+  .sidebar nav {
+    display: flex;
+    overflow-x: auto;
+    gap: 4px;
+    margin-top: 12px;
+  }
+  .sidebar nav button {
+    flex: 1 0 auto;
+    justify-content: center;
+    min-height: 44px;
+    padding: 10px;
+    font-size: 12px;
+    white-space: nowrap;
+    gap: 7px;
+  }
+  .main {
+    margin-left: 0;
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+  }
+  .topbar {
+    height: 52px;
+    padding-inline: 20px;
+  }
+  .topbar .theme-toggle {
+    display: none;
+  }
+  .overview-grid {
+    grid-template-columns: 1fr;
+  }
+  .stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .page-heading > div {
+    flex: 1;
+  }
+  .page-heading .primary {
+    flex-shrink: 0;
+  }
+  .workspace-skeleton .skeleton-sidebar > .skeleton-label,
+  .workspace-skeleton .skeleton-user {
+    display: none;
+  }
+  .workspace-skeleton .skeleton-nav-list {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 12px;
+  }
+}
+
+@media (max-width: 800px) {
+  .shell {
+    padding-bottom: calc(76px + env(safe-area-inset-bottom));
+  }
+  .sidebar {
+    padding: 10px 18px;
+  }
+  .sidebar nav,
+  .workspace-skeleton .skeleton-nav-list {
+    position: fixed;
+    inset: auto 0 0;
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0;
+    margin: 0;
+    padding: 7px 6px calc(7px + env(safe-area-inset-bottom));
+    background: var(--white);
+    border-top: 1px solid var(--line);
+    box-shadow: 0 -8px 24px #231b3912;
+  }
+  .sidebar nav button {
+    position: relative;
+    min-width: 0;
+    min-height: 60px;
+    flex-direction: column;
+    gap: 5px;
+    padding: 8px 2px;
+    font-size: 10px;
+    line-height: 1.2;
+  }
+  .sidebar nav button svg {
+    width: 20px;
+    height: 20px;
+  }
+  .nav-label-desktop {
+    display: none;
+  }
+  .nav-label-mobile {
+    display: inline;
+  }
+  .sidebar nav .count {
+    position: absolute;
+    top: 0;
+    right: 3px;
+    font-size: 9px;
+    padding: 1px 4px;
+    max-width: 32px;
+    overflow: hidden;
+  }
+  [data-theme="dark"] .sidebar nav {
+    background: var(--bg);
+  }
+  .content {
+    padding: 28px 20px 20px;
+  }
+  .page-heading {
+    align-items: flex-end;
+  }
+  .page-heading h1 {
+    font-size: clamp(28px, 5vw, 36px);
+    line-height: 1.15;
+  }
+  .page-heading .primary {
+    font-size: 12px;
+    gap: 8px;
+    min-height: 44px;
+  }
+  .demo-banner {
+    flex-wrap: wrap;
+    line-height: 1.5;
+    gap: 8px;
+  }
+  .toast {
+    bottom: calc(90px + env(safe-area-inset-bottom));
+    max-width: calc(100vw - 28px);
+  }
+  .workspace-skeleton .skeleton-nav-item {
+    width: auto;
+    height: 60px;
+    margin: 0 4px;
+  }
+}
+
+@media (max-width: 599px) {
+  .sidebar {
+    padding-inline: 14px;
+  }
+  .sidebar .brand {
+    font-size: 22px;
+  }
+  .mobile-account {
+    gap: 4px;
+  }
+  .content {
+    padding-inline: 16px;
+  }
+  .page-heading {
+    display: block;
+  }
+  .page-heading .primary {
+    width: 100%;
+    margin-top: 20px;
+  }
+  .filters {
+    flex-wrap: wrap;
+  }
+  .filters .search {
+    flex-basis: 100%;
+  }
+  .filters select {
+    width: 100%;
+    min-height: 44px;
+  }
+  .pipeline small {
+    white-space: normal;
+    text-align: center;
+  }
+  .stat {
+    padding: 14px;
+  }
+  .stat > div {
+    gap: 8px;
+  }
+  .stat svg {
+    flex-shrink: 0;
+  }
+  .interview-card > span:nth-child(2) {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+}

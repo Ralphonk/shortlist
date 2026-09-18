@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "./theme.css";
+import "./workspace-responsive.css";
 export const metadata: Metadata = {
   title: "Shortlist | Your next chapter",
   description:

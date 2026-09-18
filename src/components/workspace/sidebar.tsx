@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { LogOut } from "lucide-react";
 import { navigation } from "./shared";
+import { ThemeToggle } from "../theme-toggle";
 export function WorkspaceSidebar({
   view,
   changeView,
@@ -20,19 +21,50 @@ export function WorkspaceSidebar({
 }) {
   return (
     <aside className="sidebar">
-      <Link href="/" className="brand">
-        ◈ shortlist<span>YOUR NEXT CHAPTER</span>
-      </Link>
+      <div className="sidebar-brand-row">
+        <Link href="/" className="brand">
+          ◈ shortlist<span>YOUR NEXT CHAPTER</span>
+        </Link>
+        <div className="mobile-account">
+          <span className="avatar" title={user.name} aria-label={user.name}>
+            {user.name
+              .split(" ")
+              .map((n) => n[0])
+              .join("")
+              .slice(0, 2)}
+          </span>
+          <ThemeToggle />
+          {!demo && (
+            <button
+              className="icon-button"
+              aria-label="Sign out"
+              disabled={logoutBusy}
+              onClick={() => setLogoutConfirmOpen(true)}
+            >
+              <LogOut size={18} />
+            </button>
+          )}
+        </div>
+      </div>
       <div className="workspace-label">PERSONAL WORKSPACE</div>
-      <nav>
+      <nav aria-label="Main navigation">
         {navigation.map(([name, Icon]) => (
           <button
             key={name}
             className={view === name ? "nav-active" : ""}
+            aria-current={view === name ? "page" : undefined}
+            aria-label={name}
             onClick={() => changeView(name)}
           >
             <Icon size={19} />
-            {name}
+            <span className="nav-label-desktop">{name}</span>
+            <span className="nav-label-mobile">
+              {name === "Applications"
+                ? "Jobs"
+                : name === "Reminders"
+                  ? "Remind"
+                  : name}
+            </span>
             {name === "Reminders" && pendingCount > 0 && (
               <span className="count">{pendingCount}</span>
             )}

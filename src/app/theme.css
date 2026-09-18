@@ -320,9 +320,7 @@ html[data-theme="dark"] {
 }
 @media (max-width: 800px) {
   .shell .topbar {
-    display: flex;
-    padding: 12px 18px;
-    height: auto;
+    display: none;
   }
   .topbar .top-date {
     font-size: 0;
