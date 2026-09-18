@@ -489,7 +489,7 @@ small {
   border-radius: 8px;
 }
 .crop-dialog {
-  width: min(390px, 100%);
+  width: min(820px, 100%);
 }
 .crop-help {
   margin: -8px 0 18px;
@@ -508,6 +508,12 @@ small {
   cursor: grab;
   touch-action: none;
   user-select: none;
+}
+.crop-editor-layout {
+  display: grid;
+  grid-template-columns: auto minmax(240px, 1fr);
+  align-items: center;
+  gap: 34px;
 }
 .crop-viewport:active {
   cursor: grabbing;
@@ -528,6 +534,33 @@ small {
   box-shadow: 0 0 0 120px #090a1191;
   pointer-events: none;
 }
+.crop-controls {
+  display: grid;
+  align-content: center;
+  gap: 28px;
+}
+.crop-transform-actions {
+  display: flex;
+  gap: 8px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--line);
+}
+.crop-transform-actions button {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+}
+.crop-transform-actions button:hover,
+.crop-transform-actions button.is-active {
+  color: var(--purple);
+  background: var(--light);
+  border-color: #7152dc2b;
+}
 .crop-zoom {
   display: grid;
   grid-template-columns: auto auto 1fr;
@@ -540,6 +573,62 @@ small {
   padding: 0;
   accent-color: var(--purple);
   box-shadow: none;
+}
+.crop-slider-field {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  color: var(--muted);
+}
+.crop-range-wrap {
+  position: relative;
+  display: block;
+  padding-top: 32px;
+}
+.crop-range-wrap input {
+  width: 100%;
+  padding: 0;
+  accent-color: var(--purple);
+  box-shadow: none;
+}
+.crop-range-value {
+  position: absolute;
+  top: 0;
+  min-width: 28px;
+  padding: 7px 8px;
+  color: var(--ink);
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  text-align: center;
+  font-size: 12px;
+  box-shadow: 0 5px 16px #17132224;
+  transform: translateX(-50%);
+  transition: left 120ms ease;
+}
+.crop-range-value::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -4px;
+  width: 7px;
+  height: 7px;
+  background: inherit;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  transform: translateX(-50%) rotate(45deg);
+}
+@media (max-width: 720px) {
+  .crop-editor-layout {
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+  .crop-viewport {
+    margin-bottom: 0;
+  }
+  .crop-controls {
+    gap: 20px;
+  }
 }
 .account-success-state {
   display: flex;

@@ -7,9 +7,13 @@ import {
   CheckCircle2,
   Eye,
   EyeOff,
+  FlipHorizontal2,
+  FlipVertical2,
   KeyRound,
   LogOut,
   Pencil,
+  RotateCcw,
+  RotateCw,
   Upload,
   ZoomIn,
   X,
@@ -361,8 +365,6 @@ function ProfileDialog({
   );
 }
 
-const CROP_SIZE = 240;
-
 function CropPhotoDialog({
   candidate,
   onCancel,
@@ -380,11 +382,25 @@ function CropPhotoDialog({
     top: number;
   } | null>(null);
   const [natural, setNatural] = useState({ width: 0, height: 0 });
+  const [cropSize, setCropSize] = useState(() =>
+    Math.min(360, window.innerWidth - 80),
+  );
   const [zoom, setZoom] = useState(1);
+  const [rotation, setRotation] = useState(0);
+  const [quarterTurns, setQuarterTurns] = useState(0);
+  const [flipHorizontal, setFlipHorizontal] = useState(false);
+  const [flipVertical, setFlipVertical] = useState(false);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
 
+  const totalRotation = rotation + quarterTurns * 90;
+  const radians = (totalRotation * Math.PI) / 180;
+  const rotationExtent =
+    Math.abs(Math.cos(radians)) + Math.abs(Math.sin(radians));
   const baseScale = natural.width
-    ? Math.max(CROP_SIZE / natural.width, CROP_SIZE / natural.height)
+    ? Math.max(
+        (cropSize * rotationExtent) / natural.width,
+        (cropSize * rotationExtent) / natural.height,
+      )
     : 1;
   const scale = baseScale * zoom;
   const rendered = {
@@ -392,13 +408,19 @@ function CropPhotoDialog({
     height: natural.height * scale,
   };
   const limits = {
-    x: Math.max(0, (rendered.width - CROP_SIZE) / 2),
-    y: Math.max(0, (rendered.height - CROP_SIZE) / 2),
+    x: Math.max(0, (rendered.width / rotationExtent - cropSize) / 2),
+    y: Math.max(0, (rendered.height / rotationExtent - cropSize) / 2),
   };
   const clampOffset = (next: { x: number; y: number }) => ({
     x: Math.max(-limits.x, Math.min(limits.x, next.x)),
     y: Math.max(-limits.y, Math.min(limits.y, next.y)),
   });
+
+  useEffect(() => {
+    const resize = () => setCropSize(Math.min(360, window.innerWidth - 80));
+    window.addEventListener("resize", resize);
+    return () => window.removeEventListener("resize", resize);
+  }, []);
 
   function applyCrop() {
     const source = image.current;
@@ -408,18 +430,20 @@ function CropPhotoDialog({
     canvas.height = 512;
     const context = canvas.getContext("2d");
     if (!context) return;
-    const left = (CROP_SIZE - rendered.width) / 2 + offset.x;
-    const top = (CROP_SIZE - rendered.height) / 2 + offset.y;
+    const outputScale = 512 / cropSize;
+    context.translate(
+      256 + offset.x * outputScale,
+      256 + offset.y * outputScale,
+    );
+    context.rotate(radians);
+    context.scale(
+      (flipHorizontal ? -1 : 1) * scale * outputScale,
+      (flipVertical ? -1 : 1) * scale * outputScale,
+    );
     context.drawImage(
       source,
-      -left / scale,
-      -top / scale,
-      CROP_SIZE / scale,
-      CROP_SIZE / scale,
-      0,
-      0,
-      512,
-      512,
+      -source.naturalWidth / 2,
+      -source.naturalHeight / 2,
     );
     canvas.toBlob(
       (blob) => {
@@ -454,70 +478,145 @@ function CropPhotoDialog({
           </button>
         </div>
         <p className="crop-help">
-          Drag to reposition your photo, then use the slider to zoom.
+          Drag to reposition, then fine-tune the zoom and rotation.
         </p>
-        <div
-          className="crop-viewport"
-          onPointerDown={(event) => {
-            event.currentTarget.setPointerCapture(event.pointerId);
-            drag.current = {
-              x: event.clientX,
-              y: event.clientY,
-              left: offset.x,
-              top: offset.y,
-            };
-          }}
-          onPointerMove={(event) => {
-            if (!drag.current) return;
-            setOffset(
-              clampOffset({
-                x: drag.current.left + event.clientX - drag.current.x,
-                y: drag.current.top + event.clientY - drag.current.y,
-              }),
-            );
-          }}
-          onPointerUp={() => {
-            drag.current = null;
-          }}
-          onPointerCancel={() => {
-            drag.current = null;
-          }}
-        >
-          <img
-            ref={image}
-            src={candidate.url}
-            alt="Photo to crop"
-            draggable={false}
-            onLoad={(event) =>
-              setNatural({
-                width: event.currentTarget.naturalWidth,
-                height: event.currentTarget.naturalHeight,
-              })
-            }
-            style={{
-              width: rendered.width,
-              height: rendered.height,
-              transform: `translate(calc(-50% + ${offset.x}px), calc(-50% + ${offset.y}px))`,
+        <div className="crop-editor-layout">
+          <div
+            className="crop-viewport"
+            style={{ width: cropSize, height: cropSize }}
+            onPointerDown={(event) => {
+              event.currentTarget.setPointerCapture(event.pointerId);
+              drag.current = {
+                x: event.clientX,
+                y: event.clientY,
+                left: offset.x,
+                top: offset.y,
+              };
             }}
-          />
-          <span className="crop-ring" aria-hidden="true" />
+            onPointerMove={(event) => {
+              if (!drag.current) return;
+              setOffset(
+                clampOffset({
+                  x: drag.current.left + event.clientX - drag.current.x,
+                  y: drag.current.top + event.clientY - drag.current.y,
+                }),
+              );
+            }}
+            onPointerUp={() => {
+              drag.current = null;
+            }}
+            onPointerCancel={() => {
+              drag.current = null;
+            }}
+          >
+            <img
+              ref={image}
+              src={candidate.url}
+              alt="Photo to crop"
+              draggable={false}
+              onLoad={(event) =>
+                setNatural({
+                  width: event.currentTarget.naturalWidth,
+                  height: event.currentTarget.naturalHeight,
+                })
+              }
+              style={{
+                width: rendered.width,
+                height: rendered.height,
+                transform: `translate(calc(-50% + ${offset.x}px), calc(-50% + ${offset.y}px)) rotate(${totalRotation}deg) scaleX(${flipHorizontal ? -1 : 1}) scaleY(${flipVertical ? -1 : 1})`,
+              }}
+            />
+            <span className="crop-ring" aria-hidden="true" />
+          </div>
+          <div className="crop-controls">
+            <div
+              className="crop-transform-actions"
+              aria-label="Photo orientation"
+            >
+              <button
+                type="button"
+                aria-label="Rotate 90 degrees counter-clockwise"
+                title="Rotate counter-clockwise"
+                onClick={() => {
+                  setQuarterTurns((value) => value - 1);
+                  setOffset({ x: 0, y: 0 });
+                }}
+              >
+                <RotateCcw size={21} />
+              </button>
+              <button
+                type="button"
+                aria-label="Rotate 90 degrees clockwise"
+                title="Rotate clockwise"
+                onClick={() => {
+                  setQuarterTurns((value) => value + 1);
+                  setOffset({ x: 0, y: 0 });
+                }}
+              >
+                <RotateCw size={21} />
+              </button>
+              <button
+                type="button"
+                className={flipHorizontal ? "is-active" : ""}
+                aria-label="Flip image horizontally"
+                title="Flip horizontally"
+                aria-pressed={flipHorizontal}
+                onClick={() => setFlipHorizontal((value) => !value)}
+              >
+                <FlipHorizontal2 size={21} />
+              </button>
+              <button
+                type="button"
+                className={flipVertical ? "is-active" : ""}
+                aria-label="Flip image vertically"
+                title="Flip vertically"
+                aria-pressed={flipVertical}
+                onClick={() => setFlipVertical((value) => !value)}
+              >
+                <FlipVertical2 size={21} />
+              </button>
+            </div>
+            <label className="crop-zoom">
+              <ZoomIn size={17} />
+              <span>Zoom</span>
+              <input
+                type="range"
+                min="1"
+                max="3"
+                step="0.01"
+                value={zoom}
+                onChange={(event) => {
+                  const next = Number(event.target.value);
+                  setZoom(next);
+                  setOffset({ x: 0, y: 0 });
+                }}
+              />
+            </label>
+            <label className="crop-slider-field">
+              <span>Rotate</span>
+              <span className="crop-range-wrap">
+                <output
+                  className="crop-range-value"
+                  style={{ left: `${((rotation + 45) / 90) * 100}%` }}
+                >
+                  {rotation}°
+                </output>
+                <input
+                  type="range"
+                  min="-45"
+                  max="45"
+                  step="1"
+                  value={rotation}
+                  aria-label="Rotate photo"
+                  onChange={(event) => {
+                    setRotation(Number(event.target.value));
+                    setOffset({ x: 0, y: 0 });
+                  }}
+                />
+              </span>
+            </label>
+          </div>
         </div>
-        <label className="crop-zoom">
-          <ZoomIn size={17} />
-          <span>Zoom</span>
-          <input
-            type="range"
-            min="1"
-            max="3"
-            step="0.01"
-            value={zoom}
-            onChange={(event) => {
-              const next = Number(event.target.value);
-              setZoom(next);
-              setOffset({ x: 0, y: 0 });
-            }}
-          />
-        </label>
         <div className="dialog-actions">
           <button type="button" className="secondary" onClick={onCancel}>
             Cancel
@@ -528,7 +627,7 @@ function CropPhotoDialog({
             onClick={applyCrop}
             disabled={!natural.width}
           >
-            Apply crop
+            Save changes
           </button>
         </div>
       </div>
